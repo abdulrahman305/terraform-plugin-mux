@@ -1,3 +1,51 @@
+## 0.21.0-alpha.1 (July 31, 2025)
+
+NOTES:
+
+* This alpha pre-release contains the `ListResource` RPC which returns a list of resource identities for a single managed resource type. ([#313](https://github.com/hashicorp/terraform-plugin-mux/issues/313))
+* The `ListResource` and `ValidateListResourceConfig` RPCs are considered experimental and may change up until general availability. ([#310](https://github.com/hashicorp/terraform-plugin-mux/issues/310))
+* This alpha pre-release contains the `Actions` RPC that allows practitioners to specify and invoke non-CRUD, ad-hoc operations that can cause changes to managed resources. ([#314](https://github.com/hashicorp/terraform-plugin-mux/issues/314))
+* The `Actions` and `ValidateActionConfig` RPCs are considered experimental and may change up until general availability. ([#317](https://github.com/hashicorp/terraform-plugin-mux/issues/317))
+
+## 0.20.0 (May 21, 2025)
+
+BUG FIXES:
+
+* all: Fixed a bug where muxed provider servers were not enforced to implement `GetResourceIdentitySchemas`, which is required by Terraform v1.12.1 in the scenario where at least one of the muxed provider servers supports identity. Before upgrading this dependency the Go modules that support identity should also be upgraded to prevent confusing errors, which are: terraform-plugin-go@v0.28.0, terraform-plugin-framework@v1.15.0, terraform-plugin-sdk/v2@v2.37.0, and terraform-plugin-testing@v1.13.0. ([#307](https://github.com/hashicorp/terraform-plugin-mux/issues/307))
+
+## 0.19.0 (May 16, 2025)
+
+NOTES:
+
+* all: This Go module has been updated to Go 1.23 per the [Go support policy](https://go.dev/doc/devel/release#policy). It is recommended to review the [Go 1.23 release notes](https://go.dev/doc/go1.23) before upgrading. Any consumers building on earlier Go versions may experience errors. ([#291](https://github.com/hashicorp/terraform-plugin-mux/issues/291))
+
+FEATURES:
+
+* tf5muxserver+tf6muxserver+tf6to5server+tf5to6server: Upgraded protocols and added types to support the new resource identity feature ([#278](https://github.com/hashicorp/terraform-plugin-mux/issues/278))
+
+## 0.19.0-alpha.1 (March 18, 2025)
+
+NOTES:
+
+* all: This Go module has been updated to Go 1.23 per the [Go support policy](https://go.dev/doc/devel/release#policy). It is recommended to review the [Go 1.23 release notes](https://go.dev/doc/go1.23) before upgrading. Any consumers building on earlier Go versions may experience errors. ([#291](https://github.com/hashicorp/terraform-plugin-mux/issues/291))
+* This alpha pre-release contains the muxing logic for managed resource identity, which can used with Terraform v1.12.0-alpha20250312, to store and read identity data during plan and apply workflows. ([#278](https://github.com/hashicorp/terraform-plugin-mux/issues/278))
+
+## 0.18.0 (January 23, 2025)
+
+FEATURES:
+
+* all: Upgrade protocol versions to support write-only attributes ([#272](https://github.com/hashicorp/terraform-plugin-mux/issues/272))
+
+## 0.17.0 (October 30, 2024)
+
+NOTES:
+
+* all: This Go module has been updated to Go 1.22 per the [Go support policy](https://go.dev/doc/devel/release#policy). It is recommended to review the [Go 1.22 release notes](https://go.dev/doc/go1.22) before upgrading. Any consumers building on earlier Go versions may experience errors. ([#250](https://github.com/hashicorp/terraform-plugin-mux/issues/250))
+
+FEATURES:
+
+* all: Upgrade protocol versions to support ephemeral resource types ([#257](https://github.com/hashicorp/terraform-plugin-mux/issues/257))
+
 ## 0.16.0 (May 08, 2024)
 
 NOTES:

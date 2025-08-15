@@ -28,11 +28,22 @@ func TestDowngradeServer(t *testing.T) {
 		"compatible": {
 			v6Server: (&tf6testserver.TestServer{
 				GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+					ActionSchemas: map[string]*tfprotov6.ActionSchema{
+						"test_action": {
+							Type: tfprotov6.UnlinkedActionSchemaType{},
+						},
+					},
 					DataSourceSchemas: map[string]*tfprotov6.Schema{
 						"test_data_source": {},
 					},
+					EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
+						"test_ephemeral_resource": {},
+					},
 					Functions: map[string]*tfprotov6.Function{
 						"test_function": {},
+					},
+					ListResourceSchemas: map[string]*tfprotov6.Schema{
+						"test_list_resource": {},
 					},
 					Provider: &tfprotov6.Schema{
 						Block: &tfprotov6.SchemaBlock{
@@ -203,7 +214,6 @@ func TestDowngradeServer(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -289,6 +299,37 @@ func TestV6ToV5ServerCallFunction(t *testing.T) {
 	}
 }
 
+func TestV6ToV5ServerCloseEphemeralResource(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v6server := &tf6testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_ephemeral_resource": {},
+			},
+		},
+	}
+
+	v5server, err := tf6to5server.DowngradeServer(context.Background(), v6server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error downgrading server: %s", err)
+	}
+
+	_, err = v5server.CloseEphemeralResource(ctx, &tfprotov5.CloseEphemeralResourceRequest{
+		TypeName: "test_ephemeral_resource",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v6server.CloseEphemeralResourceCalled["test_ephemeral_resource"] {
+		t.Errorf("expected test_ephemeral_resource CloseEphemeralResource to be called")
+	}
+}
+
 func TestV6ToV5ServerConfigureProvider(t *testing.T) {
 	t.Parallel()
 
@@ -318,7 +359,7 @@ func TestV6ToV5ServerConfigureProvider(t *testing.T) {
 	}
 }
 
-func TestV5ToV6ServerGetFunctions(t *testing.T) {
+func TestV6ToV5ServerGetFunctions(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -347,7 +388,7 @@ func TestV5ToV6ServerGetFunctions(t *testing.T) {
 	}
 }
 
-func TestV5ToV6ServerGetMetadata(t *testing.T) {
+func TestV6ToV5ServerGetMetadata(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -404,6 +445,31 @@ func TestV6ToV5ServerGetProviderSchema(t *testing.T) {
 
 	if !v6server.GetProviderSchemaCalled {
 		t.Errorf("expected GetProviderSchema to be called")
+	}
+}
+
+func TestV6ToV5ServerGetResourceIdentitySchemas(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v6server := &tf6testserver.TestServer{
+		GetResourceIdentitySchemasResponse: &tfprotov6.GetResourceIdentitySchemasResponse{},
+	}
+
+	v5server, err := tf6to5server.DowngradeServer(context.Background(), v6server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error downgrading server: %s", err)
+	}
+
+	_, err = v5server.GetResourceIdentitySchemas(ctx, &tfprotov5.GetResourceIdentitySchemasRequest{})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v6server.GetResourceIdentitySchemasCalled {
+		t.Errorf("expected GetResourceIdentitySchemas to be called")
 	}
 }
 
@@ -466,6 +532,37 @@ func TestV6ToV5ServerMoveResourceState(t *testing.T) {
 
 	if !v6server.MoveResourceStateCalled["test_resource"] {
 		t.Errorf("expected test_resource MoveResourceState to be called")
+	}
+}
+
+func TestV6ToV5ServerOpenEphemeralResource(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v6server := &tf6testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_ephemeral_resource": {},
+			},
+		},
+	}
+
+	v5server, err := tf6to5server.DowngradeServer(context.Background(), v6server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error downgrading server: %s", err)
+	}
+
+	_, err = v5server.OpenEphemeralResource(ctx, &tfprotov5.OpenEphemeralResourceRequest{
+		TypeName: "test_ephemeral_resource",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v6server.OpenEphemeralResourceCalled["test_ephemeral_resource"] {
+		t.Errorf("expected test_ephemeral_resource OpenEphemeralResource to be called")
 	}
 }
 
@@ -591,6 +688,37 @@ func TestV6ToV5ServerReadResource(t *testing.T) {
 	}
 }
 
+func TestV6ToV5ServerRenewEphemeralResource(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v6server := &tf6testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_ephemeral_resource": {},
+			},
+		},
+	}
+
+	v5server, err := tf6to5server.DowngradeServer(context.Background(), v6server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error downgrading server: %s", err)
+	}
+
+	_, err = v5server.RenewEphemeralResource(ctx, &tfprotov5.RenewEphemeralResourceRequest{
+		TypeName: "test_ephemeral_resource",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v6server.RenewEphemeralResourceCalled["test_ephemeral_resource"] {
+		t.Errorf("expected test_ephemeral_resource RenewEphemeralResource to be called")
+	}
+}
+
 func TestV6ToV5ServerStopProvider(t *testing.T) {
 	t.Parallel()
 
@@ -651,6 +779,37 @@ func TestV6ToV5ServerUpgradeResourceState(t *testing.T) {
 	}
 }
 
+func TestV6ToV5ServerUpgradeResourceIdentity(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v6server := &tf6testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_resource": {},
+			},
+		},
+	}
+
+	v5server, err := tf6to5server.DowngradeServer(context.Background(), v6server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error downgrading server: %s", err)
+	}
+
+	_, err = v5server.UpgradeResourceIdentity(ctx, &tfprotov5.UpgradeResourceIdentityRequest{
+		TypeName: "test_resource",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v6server.UpgradeResourceIdentityCalled["test_resource"] {
+		t.Errorf("expected test_resource UpgradeResourceState to be called")
+	}
+}
+
 func TestV6ToV5ServerValidateDataSourceConfig(t *testing.T) {
 	t.Parallel()
 
@@ -682,6 +841,37 @@ func TestV6ToV5ServerValidateDataSourceConfig(t *testing.T) {
 	}
 }
 
+func TestV6ToV5ServerValidateEphemeralResourceConfig(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v6server := &tf6testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_ephemeral_resource": {},
+			},
+		},
+	}
+
+	v5server, err := tf6to5server.DowngradeServer(context.Background(), v6server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error downgrading server: %s", err)
+	}
+
+	_, err = v5server.ValidateEphemeralResourceConfig(ctx, &tfprotov5.ValidateEphemeralResourceConfigRequest{
+		TypeName: "test_ephemeral_resource",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v6server.ValidateEphemeralResourceConfigCalled["test_ephemeral_resource"] {
+		t.Errorf("expected test_ephemeral_resource ValidateEphemeralResourceConfig to be called")
+	}
+}
+
 func TestV6ToV5ServerValidateResourceTypeConfig(t *testing.T) {
 	t.Parallel()
 
@@ -710,5 +900,194 @@ func TestV6ToV5ServerValidateResourceTypeConfig(t *testing.T) {
 
 	if !v6server.ValidateResourceConfigCalled["test_resource"] {
 		t.Errorf("expected test_resource ValidateResourceConfig to be called")
+	}
+}
+
+func TestV6ToV5ServerValidateListResourceConfig(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v6server := &tf6testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_list_resource": {},
+			},
+		},
+	}
+
+	v5server, err := tf6to5server.DowngradeServer(context.Background(), v6server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error downgrading server: %s", err)
+	}
+
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	listResourceServer, ok := v5server.(tfprotov5.ProviderServerWithListResource)
+	if !ok {
+		t.Fatal("v6server should implement tfprotov5.ProviderServerWithListResource")
+	}
+
+	_, err = listResourceServer.ValidateListResourceConfig(ctx, &tfprotov5.ValidateListResourceConfigRequest{
+		TypeName: "test_list_resource",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v6server.ValidateListResourceConfigCalled["test_list_resource"] {
+		t.Errorf("expected test_list_resource ValidateListResourceConfig to be called")
+	}
+}
+
+func TestV6ToV5ServerListResource(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v6server := &tf6testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_list_resource": {},
+			},
+		},
+	}
+
+	v5server, err := tf6to5server.DowngradeServer(context.Background(), v6server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error downgrading server: %s", err)
+	}
+
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	listResourceServer, ok := v5server.(tfprotov5.ProviderServerWithListResource)
+	if !ok {
+		t.Fatal("v6server should implement tfprotov5.ProviderServerWithListResource")
+	}
+
+	_, err = listResourceServer.ListResource(ctx, &tfprotov5.ListResourceRequest{
+		TypeName: "test_list_resource",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v6server.ListResourceCalled["test_list_resource"] {
+		t.Errorf("expected test_list_resource ListResource to be called")
+	}
+}
+
+func TestV6ToV5ServerValidateActionConfig(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v6server := &tf6testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_action": {},
+			},
+		},
+	}
+
+	v5server, err := tf6to5server.DowngradeServer(context.Background(), v6server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error downgrading server: %s", err)
+	}
+
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	actionServer, ok := v5server.(tfprotov5.ProviderServerWithActions)
+	if !ok {
+		t.Fatal("v5server should implement tfprotov5.ProviderServerWithActions")
+	}
+
+	_, err = actionServer.ValidateActionConfig(ctx, &tfprotov5.ValidateActionConfigRequest{
+		ActionType: "test_action",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v6server.ValidateActionConfigCalled["test_action"] {
+		t.Errorf("expected test_action ValidateActionConfig to be called")
+	}
+}
+
+func TestV6ToV5ServerPlanAction(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v6server := &tf6testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ActionSchemas: map[string]*tfprotov6.ActionSchema{
+				"test_action": {
+					Type: tfprotov6.UnlinkedActionSchemaType{},
+				},
+			},
+		},
+	}
+
+	v5server, err := tf6to5server.DowngradeServer(context.Background(), v6server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error downgrading server: %s", err)
+	}
+
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	actionServer, ok := v5server.(tfprotov5.ProviderServerWithActions)
+	if !ok {
+		t.Fatal("v5server should implement tfprotov5.ProviderServerWithActions")
+	}
+
+	_, err = actionServer.PlanAction(ctx, &tfprotov5.PlanActionRequest{
+		ActionType: "test_action",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v6server.PlanActionCalled["test_action"] {
+		t.Errorf("expected test_action PlanAction to be called")
+	}
+}
+
+func TestV6ToV5ServerInvokeAction(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v6server := &tf6testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ActionSchemas: map[string]*tfprotov6.ActionSchema{
+				"test_action": {
+					Type: tfprotov6.UnlinkedActionSchemaType{},
+				},
+			},
+		},
+	}
+
+	v5server, err := tf6to5server.DowngradeServer(context.Background(), v6server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error upgrading server: %s", err)
+	}
+
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	actionServer, ok := v5server.(tfprotov5.ProviderServerWithActions)
+	if !ok {
+		t.Fatal("v5server should implement tfprotov5.ProviderServerWithActions")
+	}
+
+	_, err = actionServer.InvokeAction(ctx, &tfprotov5.InvokeActionRequest{
+		ActionType: "test_action",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v6server.InvokeActionCalled["test_action"] {
+		t.Errorf("expected test_action InvokeAction to be called")
 	}
 }

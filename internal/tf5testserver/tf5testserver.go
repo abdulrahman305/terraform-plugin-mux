@@ -18,6 +18,8 @@ type TestServer struct {
 
 	CallFunctionCalled map[string]bool
 
+	CloseEphemeralResourceCalled map[string]bool
+
 	ConfigureProviderCalled   bool
 	ConfigureProviderResponse *tfprotov5.ConfigureProviderResponse
 
@@ -30,9 +32,14 @@ type TestServer struct {
 	GetProviderSchemaCalled   bool
 	GetProviderSchemaResponse *tfprotov5.GetProviderSchemaResponse
 
+	GetResourceIdentitySchemasCalled   bool
+	GetResourceIdentitySchemasResponse *tfprotov5.GetResourceIdentitySchemasResponse
+
 	ImportResourceStateCalled map[string]bool
 
 	MoveResourceStateCalled map[string]bool
+
+	OpenEphemeralResourceCalled map[string]bool
 
 	PlanResourceChangeCalled map[string]bool
 
@@ -43,14 +50,30 @@ type TestServer struct {
 
 	ReadResourceCalled map[string]bool
 
+	RenewEphemeralResourceCalled map[string]bool
+
 	StopProviderCalled   bool
 	StopProviderResponse *tfprotov5.StopProviderResponse
 
+	UpgradeResourceIdentityCalled map[string]bool
+
 	UpgradeResourceStateCalled map[string]bool
+
+	ValidateEphemeralResourceConfigCalled map[string]bool
 
 	ValidateDataSourceConfigCalled map[string]bool
 
 	ValidateResourceTypeConfigCalled map[string]bool
+
+	ValidateListResourceConfigCalled map[string]bool
+
+	ListResourceCalled map[string]bool
+
+	ValidateActionConfigCalled map[string]bool
+
+	PlanActionCalled map[string]bool
+
+	InvokeActionCalled map[string]bool
 }
 
 func (s *TestServer) ProviderServer() tfprotov5.ProviderServer {
@@ -72,6 +95,15 @@ func (s *TestServer) CallFunction(_ context.Context, req *tfprotov5.CallFunction
 	}
 
 	s.CallFunctionCalled[req.Name] = true
+	return nil, nil
+}
+
+func (s *TestServer) CloseEphemeralResource(ctx context.Context, req *tfprotov5.CloseEphemeralResourceRequest) (*tfprotov5.CloseEphemeralResourceResponse, error) {
+	if s.CloseEphemeralResourceCalled == nil {
+		s.CloseEphemeralResourceCalled = make(map[string]bool)
+	}
+
+	s.CloseEphemeralResourceCalled[req.TypeName] = true
 	return nil, nil
 }
 
@@ -119,6 +151,16 @@ func (s *TestServer) GetProviderSchema(_ context.Context, _ *tfprotov5.GetProvid
 	return &tfprotov5.GetProviderSchemaResponse{}, nil
 }
 
+func (s *TestServer) GetResourceIdentitySchemas(_ context.Context, _ *tfprotov5.GetResourceIdentitySchemasRequest) (*tfprotov5.GetResourceIdentitySchemasResponse, error) {
+	s.GetResourceIdentitySchemasCalled = true
+
+	if s.GetResourceIdentitySchemasResponse != nil {
+		return s.GetResourceIdentitySchemasResponse, nil
+	}
+
+	return &tfprotov5.GetResourceIdentitySchemasResponse{}, nil
+}
+
 func (s *TestServer) ImportResourceState(_ context.Context, req *tfprotov5.ImportResourceStateRequest) (*tfprotov5.ImportResourceStateResponse, error) {
 	if s.ImportResourceStateCalled == nil {
 		s.ImportResourceStateCalled = make(map[string]bool)
@@ -134,6 +176,15 @@ func (s *TestServer) MoveResourceState(_ context.Context, req *tfprotov5.MoveRes
 	}
 
 	s.MoveResourceStateCalled[req.TargetTypeName] = true
+	return nil, nil
+}
+
+func (s *TestServer) OpenEphemeralResource(_ context.Context, req *tfprotov5.OpenEphemeralResourceRequest) (*tfprotov5.OpenEphemeralResourceResponse, error) {
+	if s.OpenEphemeralResourceCalled == nil {
+		s.OpenEphemeralResourceCalled = make(map[string]bool)
+	}
+
+	s.OpenEphemeralResourceCalled[req.TypeName] = true
 	return nil, nil
 }
 
@@ -164,6 +215,15 @@ func (s *TestServer) ReadResource(_ context.Context, req *tfprotov5.ReadResource
 	return nil, nil
 }
 
+func (s *TestServer) RenewEphemeralResource(_ context.Context, req *tfprotov5.RenewEphemeralResourceRequest) (*tfprotov5.RenewEphemeralResourceResponse, error) {
+	if s.RenewEphemeralResourceCalled == nil {
+		s.RenewEphemeralResourceCalled = make(map[string]bool)
+	}
+
+	s.RenewEphemeralResourceCalled[req.TypeName] = true
+	return nil, nil
+}
+
 func (s *TestServer) StopProvider(_ context.Context, _ *tfprotov5.StopProviderRequest) (*tfprotov5.StopProviderResponse, error) {
 	s.StopProviderCalled = true
 
@@ -174,12 +234,30 @@ func (s *TestServer) StopProvider(_ context.Context, _ *tfprotov5.StopProviderRe
 	return &tfprotov5.StopProviderResponse{}, nil
 }
 
+func (s *TestServer) UpgradeResourceIdentity(_ context.Context, req *tfprotov5.UpgradeResourceIdentityRequest) (*tfprotov5.UpgradeResourceIdentityResponse, error) {
+	if s.UpgradeResourceIdentityCalled == nil {
+		s.UpgradeResourceIdentityCalled = make(map[string]bool)
+	}
+
+	s.UpgradeResourceIdentityCalled[req.TypeName] = true
+	return nil, nil
+}
+
 func (s *TestServer) UpgradeResourceState(_ context.Context, req *tfprotov5.UpgradeResourceStateRequest) (*tfprotov5.UpgradeResourceStateResponse, error) {
 	if s.UpgradeResourceStateCalled == nil {
 		s.UpgradeResourceStateCalled = make(map[string]bool)
 	}
 
 	s.UpgradeResourceStateCalled[req.TypeName] = true
+	return nil, nil
+}
+
+func (s *TestServer) ValidateEphemeralResourceConfig(_ context.Context, req *tfprotov5.ValidateEphemeralResourceConfigRequest) (*tfprotov5.ValidateEphemeralResourceConfigResponse, error) {
+	if s.ValidateEphemeralResourceConfigCalled == nil {
+		s.ValidateEphemeralResourceConfigCalled = make(map[string]bool)
+	}
+
+	s.ValidateEphemeralResourceConfigCalled[req.TypeName] = true
 	return nil, nil
 }
 
@@ -201,7 +279,52 @@ func (s *TestServer) ValidateResourceTypeConfig(_ context.Context, req *tfprotov
 	return nil, nil
 }
 
+func (s *TestServer) ValidateListResourceConfig(_ context.Context, req *tfprotov5.ValidateListResourceConfigRequest) (*tfprotov5.ValidateListResourceConfigResponse, error) {
+	if s.ValidateListResourceConfigCalled == nil {
+		s.ValidateListResourceConfigCalled = make(map[string]bool)
+	}
+
+	s.ValidateListResourceConfigCalled[req.TypeName] = true
+	return nil, nil
+}
+
 func (s *TestServer) PrepareProviderConfig(_ context.Context, req *tfprotov5.PrepareProviderConfigRequest) (*tfprotov5.PrepareProviderConfigResponse, error) {
 	s.PrepareProviderConfigCalled = true
 	return s.PrepareProviderConfigResponse, nil
+}
+
+func (s *TestServer) ListResource(_ context.Context, req *tfprotov5.ListResourceRequest) (*tfprotov5.ListResourceServerStream, error) {
+	if s.ListResourceCalled == nil {
+		s.ListResourceCalled = make(map[string]bool)
+	}
+
+	s.ListResourceCalled[req.TypeName] = true
+	return nil, nil
+}
+
+func (s *TestServer) ValidateActionConfig(_ context.Context, req *tfprotov5.ValidateActionConfigRequest) (*tfprotov5.ValidateActionConfigResponse, error) {
+	if s.ValidateActionConfigCalled == nil {
+		s.ValidateActionConfigCalled = make(map[string]bool)
+	}
+
+	s.ValidateActionConfigCalled[req.ActionType] = true
+	return nil, nil
+}
+
+func (s *TestServer) PlanAction(ctx context.Context, req *tfprotov5.PlanActionRequest) (*tfprotov5.PlanActionResponse, error) {
+	if s.PlanActionCalled == nil {
+		s.PlanActionCalled = make(map[string]bool)
+	}
+
+	s.PlanActionCalled[req.ActionType] = true
+	return nil, nil
+}
+
+func (s *TestServer) InvokeAction(ctx context.Context, req *tfprotov5.InvokeActionRequest) (*tfprotov5.InvokeActionServerStream, error) {
+	if s.InvokeActionCalled == nil {
+		s.InvokeActionCalled = make(map[string]bool)
+	}
+
+	s.InvokeActionCalled[req.ActionType] = true
+	return nil, nil
 }
